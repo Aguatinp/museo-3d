@@ -7,14 +7,14 @@ import './App.css'
 
 const CAMERA_VIEWS = {
   initialView: {
-    position: [0, -0.8, 2.4],
+    position: [0.033, -0.1294, 2.4864],
     target: [0, -0.15, 0],
-    fov: 58,
+    fov: 57,
   },
   leftVitrineView: {
-    position: [-3.12, -0.5, 0.48],
-    target: [-2.75, -0.42, -0.18],
-    fov: 36,
+    position: [-5.516143719134195, -0.5925308477772486, -1.1021954543764796],
+    target: [-5.025789011914751, -0.650036455640188, -2.0318613121819977],
+    fov: 58,
   },
   // Vista para la vitrina del escudo, a la derecha de la vitrina izquierda.
   shieldVitrine: {
@@ -44,9 +44,6 @@ const CAMERA_VIEWS = {
 
 const CAMERA_ANIMATION_SPEED = 3.2
 const CAMERA_LOCK_RETURN_SPEED = 9
-const LEFT_VITRINE_STORAGE_KEY = 'museum-left-vitrine-view'
-const INITIAL_VIEW_STORAGE_KEY = 'museum-initial-view'
-const HOTSPOT_POSITION_STORAGE_PREFIX = 'museum-hotspot-position-'
 
 const baseHotspots = [
   {
@@ -54,142 +51,39 @@ const baseHotspots = [
     label: 'Birrete',
     viewId: 'leftVitrineView',
     folderName: 'Vitrina izquierda',
-    position: [-3.05, -0.9, -0.15],
+    position: [-2.3, -0.7, -0.6],
   },
   {
     id: 'shield-vitrine',
     label: 'Escudo',
     viewId: 'shieldVitrine',
     folderName: 'Vitrina escudo',
-    position: [-1.55, -0.9, -0.15],
+    position: [-0.85, -0.6, 0],
   },
   {
     id: 'book-vitrine',
     label: 'Libro',
     viewId: 'bookVitrine',
     folderName: 'Vitrina libro',
-    position: [0, -0.9, -0.15],
+    position: [0, -0.6, 0],
   },
   {
     id: 'balls-vitrine',
     label: 'Esferas',
     viewId: 'ballsVitrine',
     folderName: 'Pelotas',
-    position: [1.55, -0.9, -0.15],
+    position: [1.45, -0.85, -1.1],
   },
   {
     id: 'right-vitrine',
     label: 'Objeto derecho',
     viewId: 'sportVitrine',
     folderName: 'Deporte',
-    position: [3.05, -0.9, -0.15],
+    position: [2.7, -0.85, -0.95],
   },
 ]
 
-function isCameraVector(value) {
-  return (
-    Array.isArray(value) &&
-    value.length === 3 &&
-    value.every((item) => Number.isFinite(item))
-  )
-}
-
-function isCameraView(value) {
-  return (
-    value &&
-    isCameraVector(value.position) &&
-    isCameraVector(value.target) &&
-    Number.isFinite(value.fov)
-  )
-}
-
-function normalizeViewCoordinate(coordinate) {
-  return Number(coordinate.toFixed(4))
-}
-
-function normalizeCameraView(view) {
-  return {
-    position: view.position.map(normalizeViewCoordinate),
-    target: view.target.map(normalizeViewCoordinate),
-    fov: normalizeViewCoordinate(view.fov),
-  }
-}
-
-function readSavedCameraView(storageKey) {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const storedView = window.localStorage.getItem(storageKey)
-    if (!storedView) return null
-
-    const parsedView = JSON.parse(storedView)
-
-    if (!isCameraView(parsedView)) return null
-
-    return normalizeCameraView(parsedView)
-  } catch {
-    return null
-  }
-}
-
-function readSavedInitialView() {
-  return readSavedCameraView(INITIAL_VIEW_STORAGE_KEY)
-}
-
-function readSavedLeftVitrineView() {
-  return readSavedCameraView(LEFT_VITRINE_STORAGE_KEY)
-}
-
-function getHotspotPositionStorageKey(hotspotId) {
-  return `${HOTSPOT_POSITION_STORAGE_PREFIX}${hotspotId}`
-}
-
-function formatHotspotCoordinate(coordinate) {
-  return Number(coordinate.toFixed(3))
-}
-
-function normalizeHotspotPosition(position) {
-  return position.map(formatHotspotCoordinate)
-}
-
-function readSavedHotspotPosition(hotspotId) {
-  if (typeof window === 'undefined') return null
-
-  try {
-    const storedPosition = window.localStorage.getItem(
-      getHotspotPositionStorageKey(hotspotId),
-    )
-
-    if (!storedPosition) return null
-
-    const parsedPosition = JSON.parse(storedPosition)
-
-    if (!isCameraVector(parsedPosition)) return null
-
-    return normalizeHotspotPosition(parsedPosition)
-  } catch {
-    return null
-  }
-}
-
-function createInitialHotspotPositions() {
-  return Object.fromEntries(
-    baseHotspots.map((hotspot) => [
-      hotspot.id,
-      readSavedHotspotPosition(hotspot.id) ?? hotspot.position,
-    ]),
-  )
-}
-
 function resolveCameraView(viewName) {
-  if (viewName === 'initialView') {
-    return readSavedInitialView() ?? CAMERA_VIEWS.initialView
-  }
-
-  if (viewName === 'leftVitrineView') {
-    return readSavedLeftVitrineView() ?? CAMERA_VIEWS.leftVitrineView
-  }
-
   return CAMERA_VIEWS[viewName]
 }
 
@@ -199,22 +93,6 @@ function LoaderFallback() {
       <div className="model-loader">Cargando museo 3D...</div>
     </Html>
   )
-}
-
-function logCameraState(camera, controls) {
-  console.log('CAMERA POSITION:', [
-    Number(camera.position.x.toFixed(2)),
-    Number(camera.position.y.toFixed(2)),
-    Number(camera.position.z.toFixed(2)),
-  ])
-
-  console.log('ORBIT TARGET:', [
-    Number(controls.target.x.toFixed(2)),
-    Number(controls.target.y.toFixed(2)),
-    Number(controls.target.z.toFixed(2)),
-  ])
-
-  console.log('FOV:', camera.fov)
 }
 
 function applyInitialCameraState(camera, controls, initialView = resolveCameraView('initialView')) {
@@ -255,8 +133,6 @@ function FixedCameraControls({ activeViewRequest }) {
         camera.position.distanceTo(lockedPosition) > 0.01 ||
         controls.target.distanceTo(lockedTarget) > 0.01 ||
         Math.abs(camera.fov - view.fov) > 0.01
-
-      logCameraState(camera, controls)
 
       if (!hasMoved || isAnimatingRef.current) return
 
@@ -319,7 +195,6 @@ function FixedCameraControls({ activeViewRequest }) {
     camera.updateProjectionMatrix()
     controls.update()
     isAnimatingRef.current = false
-    logCameraState(camera, controls)
   })
 
   return (
@@ -471,12 +346,8 @@ export default function App() {
     requestId: 0,
   })
   const [openHotspot, setOpenHotspot] = useState(null)
-  const [hotspotPositions] = useState(createInitialHotspotPositions)
 
-  const hotspots = baseHotspots.map((hotspot) => ({
-    ...hotspot,
-    position: hotspotPositions[hotspot.id] ?? hotspot.position,
-  }))
+  const hotspots = baseHotspots
   const activeScreenHotspot =
     activeView === 'initialView'
       ? null
