@@ -1,0 +1,16 @@
+node_modules
+dist
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+public/models/*.glb
+backup/
+vite-dev.log
+backup/
+
+public/models/*.glb
+
+vite-dev.log
