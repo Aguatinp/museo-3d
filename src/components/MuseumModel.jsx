@@ -2,14 +2,10 @@ import { useEffect } from 'react'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
-export default function MuseumModel() {
-  const MODEL_URL = 'https://pub-3083059eab134f92b35a56d0331a52c1.r2.dev'
+const MODEL_URL = 'https://pub-3083059eab134f92b35a56d0331a52c1.r2.dev/museo.glb'
 
 export default function MuseumModel() {
   const { scene } = useGLTF(MODEL_URL)
-
-  // resto del código...
-}
 
   useEffect(() => {
     const glassMaterial = new THREE.MeshStandardMaterial({
@@ -41,18 +37,15 @@ export default function MuseumModel() {
 
       const materialName = object.material?.name || ''
 
-      // Solo vidrio de vitrinas
       if (materialName === 'M_VitrineGlass') {
         object.material = glassMaterial
         object.renderOrder = 10
       }
 
-      // Solo marcos de vitrinas
       if (materialName === 'M_VitrineFrame') {
         object.material = frameMaterial
       }
 
-      // Solo tubos de luz, menos intensos
       if (materialName === 'M_LinearEmit') {
         object.material = lightMaterial
       }

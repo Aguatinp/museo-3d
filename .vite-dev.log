@@ -75,3 +75,9 @@
 [2m5:27:49 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/MuseumModel.jsx[22m
 [2m5:58:04 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/MuseumModel.jsx[22m
 [2m5:58:41 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/components/MuseumModel.jsx[22m
+[2m6:09:51 PM[22m [36m[1m[vite][22m[39m [32mvite.config.js changed, restarting server...[39m
+[2m6:09:51 PM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+[2m6:09:51 PM[22m [36m[1m[vite][22m[39m server restarted.
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5175[22m/museo-3d/[39m
+  [32m➜[39m  [1mNetwork[22m: [36mhttp://192.168.1.93:[1m5175[22m/museo-3d/[39m

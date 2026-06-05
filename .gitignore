@@ -14,3 +14,7 @@ backup/
 public/models/*.glb
 
 vite-dev.log
+backup/
+public/models/*.glb
+vite-dev.log
+node_modules/.cache/
