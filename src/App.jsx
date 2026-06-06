@@ -11,6 +11,11 @@ const CAMERA_VIEWS = {
     target: [0, -0.15, 0],
     fov: 57,
   },
+  mobileInitialView: {
+    position: [0.033, -0.32, 2.15],
+    target: [0, -0.42, -0.05],
+    fov: 52,
+  },
   leftVitrineView: {
     position: [-5.516143719134195, -0.5925308477772486, -1.1021954543764796],
     target: [-5.025789011914751, -0.650036455640188, -2.0318613121819977],
@@ -44,6 +49,7 @@ const CAMERA_VIEWS = {
 
 const CAMERA_ANIMATION_SPEED = 3.2
 const CAMERA_LOCK_RETURN_SPEED = 9
+const MOBILE_INITIAL_VIEW_MAX_WIDTH = 900
 
 const baseHotspots = [
   {
@@ -83,8 +89,48 @@ const baseHotspots = [
   },
 ]
 
-function resolveCameraView(viewName) {
+function resolveCameraView(viewName, initialViewName = 'initialView') {
+  if (viewName === 'initialView') {
+    return CAMERA_VIEWS[initialViewName] ?? CAMERA_VIEWS.initialView
+  }
+
   return CAMERA_VIEWS[viewName]
+}
+
+function getInitialViewNameForViewport() {
+  if (typeof window === 'undefined') return 'initialView'
+
+  const isLandscape =
+    typeof window.matchMedia === 'function'
+      ? window.matchMedia('(orientation: landscape)').matches
+      : window.innerWidth > window.innerHeight
+  const shouldUseMobileInitialView =
+    window.innerWidth <= MOBILE_INITIAL_VIEW_MAX_WIDTH && isLandscape
+
+  return shouldUseMobileInitialView ? 'mobileInitialView' : 'initialView'
+}
+
+function useResponsiveInitialViewName() {
+  const [initialViewName, setInitialViewName] = useState(
+    getInitialViewNameForViewport,
+  )
+
+  useEffect(() => {
+    const updateInitialViewName = () => {
+      setInitialViewName(getInitialViewNameForViewport())
+    }
+
+    updateInitialViewName()
+    window.addEventListener('resize', updateInitialViewName)
+    window.addEventListener('orientationchange', updateInitialViewName)
+
+    return () => {
+      window.removeEventListener('resize', updateInitialViewName)
+      window.removeEventListener('orientationchange', updateInitialViewName)
+    }
+  }, [])
+
+  return initialViewName
 }
 
 function LoaderFallback() {
@@ -104,10 +150,10 @@ function applyInitialCameraState(camera, controls, initialView = resolveCameraVi
   controls.update()
 }
 
-function FixedCameraControls({ activeViewRequest }) {
+function FixedCameraControls({ activeViewRequest, initialViewName }) {
   const controlsRef = useRef()
   const { camera } = useThree()
-  const initialCameraView = resolveCameraView('initialView')
+  const initialCameraView = resolveCameraView('initialView', initialViewName)
   const previousRequestIdRef = useRef(activeViewRequest.requestId)
   const hasInitializedCameraRef = useRef(false)
   const isAnimatingRef = useRef(false)
@@ -152,7 +198,10 @@ function FixedCameraControls({ activeViewRequest }) {
   useEffect(() => {
     if (previousRequestIdRef.current === activeViewRequest.requestId) return
 
-    const nextView = resolveCameraView(activeViewRequest.viewName)
+    const nextView = resolveCameraView(
+      activeViewRequest.viewName,
+      initialViewName,
+    )
 
     if (!nextView) return
 
@@ -162,13 +211,28 @@ function FixedCameraControls({ activeViewRequest }) {
     targetOrbitRef.current.set(...nextView.target)
     animationSpeedRef.current = CAMERA_ANIMATION_SPEED
     isAnimatingRef.current = true
-  }, [activeViewRequest])
+  }, [activeViewRequest, initialViewName])
+
+  useEffect(() => {
+    if (activeViewRequest.viewName !== 'initialView') return
+
+    const nextInitialView = resolveCameraView('initialView', initialViewName)
+
+    activeCameraViewRef.current = nextInitialView
+    targetPositionRef.current.set(...nextInitialView.position)
+    targetOrbitRef.current.set(...nextInitialView.target)
+    animationSpeedRef.current = CAMERA_ANIMATION_SPEED
+
+    if (hasInitializedCameraRef.current) {
+      isAnimatingRef.current = true
+    }
+  }, [activeViewRequest.viewName, initialViewName])
 
   useFrame((_, delta) => {
     const controls = controlsRef.current
 
     if (controls && !hasInitializedCameraRef.current) {
-      applyInitialCameraState(camera, controls)
+      applyInitialCameraState(camera, controls, initialCameraView)
       hasInitializedCameraRef.current = true
     }
 
@@ -340,6 +404,7 @@ function ReturnToInitialViewButton({ onSelectInitialView }) {
 }
 
 export default function App() {
+  const initialViewName = useResponsiveInitialViewName()
   const [activeView, setActiveView] = useState('initialView')
   const [activeViewRequest, setActiveViewRequest] = useState({
     viewName: 'initialView',
@@ -405,7 +470,10 @@ export default function App() {
           />
         )}
 
-        <FixedCameraControls activeViewRequest={activeViewRequest} />
+        <FixedCameraControls
+          activeViewRequest={activeViewRequest}
+          initialViewName={initialViewName}
+        />
       </Canvas>
 
       <ActiveScreenHotspot
@@ -423,9 +491,11 @@ export default function App() {
       )}
 
       {activeScreenHotspot && (
-        <ReturnToInitialViewButton
-          onSelectInitialView={() => requestCameraView('initialView')}
-        />
+        <div className="view-controls">
+          <ReturnToInitialViewButton
+            onSelectInitialView={() => requestCameraView('initialView')}
+          />
+        </div>
       )}
 
       <div className="rotate-device-overlay" aria-hidden="true">
