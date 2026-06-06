@@ -427,6 +427,14 @@ export default function App() {
           onSelectInitialView={() => requestCameraView('initialView')}
         />
       )}
+
+      <div className="rotate-device-overlay" aria-hidden="true">
+        <div className="rotate-card">
+          <div className="rotate-icon">↻</div>
+          <h1>Gira tu dispositivo</h1>
+          <p>Este museo virtual está diseñado para verse en horizontal.</p>
+        </div>
+      </div>
     </main>
   )
 }
